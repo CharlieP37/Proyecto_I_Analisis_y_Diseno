@@ -8,24 +8,20 @@ ruta_excel = 'MOCK_DATA.xlsx'
 datos_excel = pd.read_excel(ruta_excel)
 
 nombres_columas = datos_excel.columns
-nombres_esperados = ['id', 'first_name', 'last_name', 'co', 'company', 'product']
+nombres_esperados = ['id', 'first_name', 'last_name', 'email', 'company', 'product']
 
-print(datos_excel.iloc[0]["id"])
-
-#print(datos_excel.head(2))
-
+print(datos_excel.iloc[0]["first_name"])
+print(datos_excel.iloc[0])
 
 app = Flask(__name__)
 
 @app.route("/producto", methods=["GET"])
 def listar_productos():
     if(set(nombres_esperados) == set(nombres_columas)):
-        productos = datos_excel.columns
-
         return f"Datos:\n\n{datos_excel.head(4)}"
     else:
         print('Hubo un error con los nombres')
         print('Nombres esperados: ', nombres_esperados)
         print('Nombres en el documentos: ', nombres_columas)
-        return "Invalid Data, try again", 400
+        return "Nombre de las columnas incorrectos", 400
 
