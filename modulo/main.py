@@ -1,7 +1,8 @@
 from numpy import DataSource
 import pandas as pd
 import openpyxl as op
-from flask import Flask, request
+from flask import Flask, request, send_file
+import io
 
 ruta_excel = 'MOCK_DATA.xlsx'
 
@@ -25,3 +26,13 @@ def listar_productos():
         print('Nombres en el documentos: ', nombres_columas)
         return "Nombre de las columnas incorrectos", 400
 
+@app.route('/descargar_excel')
+def descargar_excel():
+    # Convierte el DataFrame a un objeto BytesIO para la descarga
+    buffer = io.BytesIO()
+    # Archivo a descargar
+    datos_excel.to_excel(buffer, index=False, sheet_name='Datos', engine='openpyxl')
+    buffer.seek(0)
+
+    # Configura las cabeceras para la descarga del archivo
+    return send_file(buffer, download_name='datos_descargados.xlsx', as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
