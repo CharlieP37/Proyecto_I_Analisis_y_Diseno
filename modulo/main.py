@@ -115,15 +115,43 @@ def download():
     cursor1.execute("select * from compania")
     filas = cursor1.fetchall()
 
-    # Convertir los resultados en un DataFrame de pandas
+    # Convertir los resultados en un DataFrame de pandas y guardarlo en un arhivo de excel
     df = pd.DataFrame(filas, columns=[desc[0] for desc in cursor1.description])
-
-    # Guardar los resultados en un archivo Excel temporal
     ruta_excel = 'resultados_query.xlsx'
     df.to_excel(ruta_excel, index=False)
+
+    cursor1.close()
+    return send_file(ruta_excel, as_attachment=True, download_name='resultados_query.xlsx')
+
+
+@app.route('/upload', methods=["POST"])
+def upload():
+    archivo_excel = request.files['archivo']
+    df = pd.read_excel(archivo_excel)
+    cursor1 = conexion1.cursor()
+
+    # Iterar sobre las filas del DataFrame
+    for index, fila in df.iterrows():
+        # Obtener los valores de las columnas para la fila actual
+        vendedor_id = fila['vendedor_id']
+        compania_sap = fila['compania_sap']
+        nombre_compania = fila['nombre_compania']
+        correo_compania = fila['correo_compania']
+        telefono_compania = fila['telefono_compania']
+        nit_compania = fila['nit_compania']
+        pais_compania = fila['pais_compania']
+        # Agregar más columnas según sea necesario
+
+        # Ejecutar la consulta SQL para actualizar la base de datos
+        consulta = "UPDATE compania SET vendedor_id = %s, nombre_compania = %s, correo_compania = %s, telefono_compania = %s, nit_compania = %s, pais_compania = %s WHERE  compania_sap = %s"
+        datos= (vendedor_id, nombre_compania, correo_compania, telefono_compania, nit_compania, pais_compania, compania_sap)
+        cursor1.execute(consulta, datos)
+
+    # Confirmar los cambios en la base de datos
+    conexion1.commit()
 
     # Cerrar el cursor
     cursor1.close()
 
-    # Enviar el archivo Excel como respuesta para descargar
-    return send_file(ruta_excel, as_attachment=True, download_name='resultados_query.xlsx')
+    # Retornar una respuesta exitosa
+    return "Base de datos actualizada correctamente", 200
