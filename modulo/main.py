@@ -3,7 +3,10 @@ from numpy import DataSource
 import pandas as pd
 import openpyxl as op
 from flask import Flask, request, send_file
+import psycopg2
+
 import io
+from database import connect_to_database
 
 ruta_excel = 'MOCK_DATA.xlsx'
 ruta_excel2 = 'id_empresa.xlsx'
@@ -16,7 +19,8 @@ datos_excel['company'] = datos_excel['company'].astype(str)
 datos_Nombres_empresa['name_company'] = datos_Nombres_empresa['name_company'].astype(str)
 
 datos_combinados = pd.DataFrame(datos_excel)
-datos_combinados['company'].iloc[0] = datos_Nombres_empresa['name_company'].iloc[0]
+#datos_combinados['company'].iloc[0] = datos_Nombres_empresa['name_company'].iloc[0]
+
 #print(datos_combinados.head(4))
 
 
@@ -64,6 +68,7 @@ def verificar_filas(datos_excel):
 
 
 app = Flask(__name__)
+conexion1 = connect_to_database()
 
 @app.route("/producto", methods=["GET"])
 def listar_productos():
@@ -102,3 +107,23 @@ def descargar_excel():
 @app.route("/datos_combinados", methods=["GET"])
 def mostrar_datos_combinados():
     return f"Datos Combinados:\n\n{datos_combinados.head(4)}"
+
+
+@app.route('/download',  methods=["GET"])
+def download():
+    cursor1 = conexion1.cursor()
+    cursor1.execute("select * from compania")
+    filas = cursor1.fetchall()
+
+    # Convertir los resultados en un DataFrame de pandas
+    df = pd.DataFrame(filas, columns=[desc[0] for desc in cursor1.description])
+
+    # Guardar los resultados en un archivo Excel temporal
+    ruta_excel = 'resultados_query.xlsx'
+    df.to_excel(ruta_excel, index=False)
+
+    # Cerrar el cursor
+    cursor1.close()
+
+    # Enviar el archivo Excel como respuesta para descargar
+    return send_file(ruta_excel, as_attachment=True, download_name='resultados_query.xlsx')
