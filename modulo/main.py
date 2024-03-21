@@ -1,9 +1,8 @@
-import email
+from lib2to3.fixes.fix_tuple_params import tuple_name
 from numpy import DataSource
 import pandas as pd
 import openpyxl as op
 from flask import Flask, request, send_file
-import psycopg2
 
 import io
 from database import connect_to_database
@@ -67,46 +66,17 @@ def verificar_filas(datos_excel):
     return True
 
 
+def BD_listar_columna(query):
+    cursor1 = conexion1.cursor()
+    cursor1.execute(query)
+    filas = cursor1.fetchall()
+    lista_identificadores = []
+    for fila in filas:
+        lista_identificadores.append(fila[0])
+    return lista_identificadores
+
 app = Flask(__name__)
 conexion1 = connect_to_database()
-
-@app.route("/producto", methods=["GET"])
-def listar_productos():
-    if(set(nombres_esperados) == set(nombres_columas)):
-        return f"Datos:\n\n{datos_excel.head(4)}"
-    else:
-        print('Hubo un error con los nombres')
-        print('Nombres esperados: ', nombres_esperados)
-        print('Nombres en el documentos: ', nombres_columas)
-        return "Nombre de las columnas incorrectos", 400
-
-
-@app.route('/descargar_excel',  methods=["POST"])
-def descargar_excel():
-    data = request.json  # Obtener los datos enviados en el cuerpo de la solicitud como JSON
-    correo = data.get('correo')  # Obtener el correo electrónico del JSON
-
-    # Buscar el correo electrónico en el DataFrame 'datos_excel'
-    resultado = datos_combinados[datos_combinados['email'] == correo]
-    if resultado.empty:
-        return "Correo electrónico no encontrado", 404
-
-    # Elimina las columnas deseadas
-    eliminar = ['id','product']
-    resultado.drop(eliminar, axis=1, inplace=True,)
-
-    # Convierte el DataFrame a un objeto BytesIO para la descarga
-    buffer = io.BytesIO()
-    # Archivo a descargar
-    resultado.to_excel(buffer, index=False, sheet_name='Datos', engine='openpyxl')
-    buffer.seek(0)
-
-    # Configura las cabeceras para la descarga del archivo
-    return send_file(buffer, download_name='datos_descargados.xlsx', as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-
-@app.route("/datos_combinados", methods=["GET"])
-def mostrar_datos_combinados():
-    return f"Datos Combinados:\n\n{datos_combinados.head(4)}"
 
 
 @app.route('/download',  methods=["GET"])
@@ -130,28 +100,41 @@ def upload():
     df = pd.read_excel(archivo_excel)
     cursor1 = conexion1.cursor()
 
+    lista_compania_sap = BD_listar_columna("select compania_sap from compania")
+
     # Iterar sobre las filas del DataFrame
     for index, fila in df.iterrows():
         # Obtener los valores de las columnas para la fila actual
-        vendedor_id = fila['vendedor_id']
-        compania_sap = fila['compania_sap']
-        nombre_compania = fila['nombre_compania']
-        correo_compania = fila['correo_compania']
-        telefono_compania = fila['telefono_compania']
-        nit_compania = fila['nit_compania']
-        pais_compania = fila['pais_compania']
-        # Agregar más columnas según sea necesario
+        vendedor_id = fila['vendedor_id'] #integer
+        compania_sap = fila['compania_sap'] #varchar
+        nombre_compania = fila['nombre_compania'] #varchar
+        correo_compania = fila['correo_compania'] #varchar
+        telefono_compania = fila['telefono_compania'] #varchar
+        nit_compania = fila['nit_compania'] #varchar
+        pais_compania = fila['pais_compania'] # integer
 
-        # Ejecutar la consulta SQL para actualizar la base de datos
-        consulta = "UPDATE compania SET vendedor_id = %s, nombre_compania = %s, correo_compania = %s, telefono_compania = %s, nit_compania = %s, pais_compania = %s WHERE  compania_sap = %s"
-        datos= (vendedor_id, nombre_compania, correo_compania, telefono_compania, nit_compania, pais_compania, compania_sap)
-        cursor1.execute(consulta, datos)
+        if str(compania_sap) in lista_compania_sap:
+            # Ejecutar la consulta SQL para actualizar la base de datos
+            consulta =  """ UPDATE  compania
+                            SET     vendedor_id = %s, nombre_compania = %s, correo_compania = %s, telefono_compania = %s, nit_compania = %s, pais_compania = %s
+                            WHERE   compania_sap = %s
+                        """
+            datos= (vendedor_id, str(nombre_compania), str(correo_compania), str(telefono_compania), str(nit_compania), pais_compania, str(compania_sap))
+            cursor1.execute(consulta, datos)
+            conexion1.commit()
 
-    # Confirmar los cambios en la base de datos
-    conexion1.commit()
+        else:
+            consulta =  """ INSERT INTO compania(vendedor_id, compania_sap, nombre_compania, correo_compania, telefono_compania, nit_compania, pais_compania)
+                            values (%s,%s,%s,%s,%s,%s,%s)
+                        """
+            datos=(vendedor_id, compania_sap, nombre_compania, correo_compania, telefono_compania, nit_compania, pais_compania)
+            cursor1.execute(consulta, datos)
+            conexion1.commit()
 
     # Cerrar el cursor
     cursor1.close()
 
     # Retornar una respuesta exitosa
     return "Base de datos actualizada correctamente", 200
+
+
