@@ -1,7 +1,7 @@
-from lib2to3.fixes.fix_tuple_params import tuple_name
 from numpy import DataSource
 import pandas as pd
 import openpyxl as op
+import re
 from flask import Flask, request, send_file
 
 import io
@@ -60,6 +60,53 @@ def download():
 @app.route('/upload', methods=["POST"])
 def upload():
     archivo_excel = request.files['archivo']
+
+    # Validar tipo archivo y manejo de error en la lectura (Información sobre el error "e")
+    if not archivo_excel.filename.endswith('.xlsx'):
+        return "Se esperaba un archivo Excel (.xlsx).", 400
+
+    try:
+        df = pd.read_excel(archivo_excel)
+    except Exception as e:
+        return f"Error al leer el archivo Excel: {str(e)}", 400
+
+    # Validacion de datos por columna
+    tipos_esperados = {'vendedor_id': int, 'compania_sap': str, 'nombre_compania': str, 'correo_compania': str, 'telefono_compania': str, 'nit_compania': str, 'pais_compania': int}
+    for columna, tipo_esperado in tipos_esperados.items():
+        if columna == 'vendedor_id':
+            for valor in df[columna]:
+                try:
+                    valor_int = int(valor)
+                    if valor_int < 0:
+                        return f"La columna '{columna}' no puede contener valores negativos.", 400
+                except ValueError:
+                    return f"La columna '{columna}' debe contener valores numéricos enteros.", 400
+
+        elif columna == 'nombre_compania':
+            patron_alfanumerico = r'^[\w\s.]+$'
+            for valor in df[columna]:
+                # Cambiar la 'ñ' por 'n' y validación de la columna
+                valor = valor.replace('ñ', 'n').replace('Ñ', 'N')
+                if not (isinstance(valor, str) and re.match(patron_alfanumerico, valor) and len(valor) <= 255):
+                    return f"La columna '{columna}' es incorrecta", 400
+
+        elif columna == 'telefono_compania':
+            for valor in df[columna]:
+                if not ((isinstance(valor, str) or isinstance(valor, int)) and len(str(valor)) <= 45):
+                    return f"La columna '{columna}' es incorrecta", 400
+                
+        elif columna == 'nit_compania':
+            for valor in df[columna]:
+                if not ((isinstance(valor, str) or isinstance(valor, int)) and len(str(valor)) <= 45):
+                    return f"La columna '{columna}' es incorrecta", 400
+
+
+    # Validar el formato del correo electrónico
+    patron_email = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    for index, fila in df.iterrows():
+        if not re.match(patron_email, str(fila['correo_compania'])):
+            return f"El correo electrónico '{fila['correo_compania']}' no tiene un formato válido.", 400
+
     df = pd.read_excel(archivo_excel)
     cursor1 = conexion1.cursor()
 
