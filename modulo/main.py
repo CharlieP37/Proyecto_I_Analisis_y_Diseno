@@ -82,14 +82,6 @@ def upload():
                 except ValueError:
                     return f"La columna '{columna}' debe contener valores numéricos enteros.", 400
 
-        elif columna == 'nombre_compania':
-            patron_alfanumerico = r'^[\w\s.]+$'
-            for valor in df[columna]:
-                # Cambiar la 'ñ' por 'n' y validación de la columna
-                valor = valor.replace('ñ', 'n').replace('Ñ', 'N')
-                if not (isinstance(valor, str) and re.match(patron_alfanumerico, valor) and len(valor) <= 255):
-                    return f"La columna '{columna}' es incorrecta", 400
-
         elif columna == 'telefono_compania':
             for valor in df[columna]:
                 if not ((isinstance(valor, str) or isinstance(valor, int)) and len(str(valor)) <= 45):
@@ -116,14 +108,16 @@ def upload():
     for index, fila in df.iterrows():
         # Obtener los valores de las columnas para la fila actual
         vendedor_id = fila['vendedor_id'] #integer
-        compania_sap = fila['compania_sap'] #varchar
+        compania_sap = fila['compania_sap'] #varchar - pero lo toma como int
         nombre_compania = fila['nombre_compania'] #varchar
         correo_compania = fila['correo_compania'] #varchar
         telefono_compania = fila['telefono_compania'] #varchar
         nit_compania = fila['nit_compania'] #varchar
         pais_compania = fila['pais_compania'] # integer
 
-        if str(compania_sap) in lista_compania_sap:
+        lista_compania_sap = [int(i) for i in lista_compania_sap] #Conversión de str a int de la consulta a bd
+
+        if compania_sap in lista_compania_sap:
             # Ejecutar la consulta SQL para actualizar la base de datos
             consulta =  """ UPDATE  compania
                             SET     vendedor_id = %s, nombre_compania = %s, correo_compania = %s, telefono_compania = %s, nit_compania = %s, pais_compania = %s
