@@ -1,3 +1,8 @@
+from ast import Not
+from asyncio.windows_events import NULL
+from errno import ESTALE
+from msilib import PID_REVNUMBER
+from xml.sax.handler import property_interning_dict
 from numpy import DataSource
 import pandas as pd
 import openpyxl as op
@@ -82,30 +87,22 @@ def upload():
                 except ValueError:
                     return f"La columna '{columna}' debe contener valores numéricos enteros.", 400
 
-        elif columna == 'nombre_compania':
-            patron_alfanumerico = r'^[\w\s.]+$'
-            for valor in df[columna]:
-                # Cambiar la 'ñ' por 'n' y validación de la columna
-                valor = valor.replace('ñ', 'n').replace('Ñ', 'N')
-                if not (isinstance(valor, str) and re.match(patron_alfanumerico, valor) and len(valor) <= 255):
-                    return f"La columna '{columna}' es incorrecta", 400
+        #elif columna == 'telefono_compania':
+        #    for valor in df[columna]:
+        #        if not ((isinstance(valor, str) or isinstance(valor, int)) and len(str(valor)) <= 45):
+        #            return f"La columna '{columna}' es incorrecta", 400
 
-        elif columna == 'telefono_compania':
-            for valor in df[columna]:
-                if not ((isinstance(valor, str) or isinstance(valor, int)) and len(str(valor)) <= 45):
-                    return f"La columna '{columna}' es incorrecta", 400
-                
-        elif columna == 'nit_compania':
-            for valor in df[columna]:
-                if not ((isinstance(valor, str) or isinstance(valor, int)) and len(str(valor)) <= 45):
-                    return f"La columna '{columna}' es incorrecta", 400
+        #elif columna == 'nit_compania':
+        #    for valor in df[columna]:
+        #        if not ((isinstance(valor, str) or isinstance(valor, int)) and len(str(valor)) <= 45):
+        #            return f"La columna '{columna}' es incorrecta", 400
 
 
     # Validar el formato del correo electrónico
-    patron_email = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-    for index, fila in df.iterrows():
-        if not re.match(patron_email, str(fila['correo_compania'])):
-            return f"El correo electrónico '{fila['correo_compania']}' no tiene un formato válido.", 400
+    #patron_email = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    #for index, fila in df.iterrows():
+    #    if not re.match(patron_email, str(fila['correo_compania'])):
+    #        return f"El correo electrónico '{fila['correo_compania']}' no tiene un formato válido.", 400
 
     df = pd.read_excel(archivo_excel)
     cursor1 = conexion1.cursor()
@@ -116,29 +113,93 @@ def upload():
     for index, fila in df.iterrows():
         # Obtener los valores de las columnas para la fila actual
         vendedor_id = fila['vendedor_id'] #integer
-        compania_sap = fila['compania_sap'] #varchar
+        compania_sap = str(fila['compania_sap']) #varchar - pero lo toma como int
         nombre_compania = fila['nombre_compania'] #varchar
+        pais_compania = fila['pais_compania'] # integer
+
+        negociacion = fila['negociacion'] # boleano
         correo_compania = fila['correo_compania'] #varchar
         telefono_compania = fila['telefono_compania'] #varchar
         nit_compania = fila['nit_compania'] #varchar
-        pais_compania = fila['pais_compania'] # integer
+        estado_compania = fila['estado_compania'] # integer
+        banco = fila['banco'] #varchar
+        centro = fila['centro'] #varchar
+        informacion_legal = fila['informacion_legal'] #json
+        direccion_legal = fila['direccion_legal'] #json
+        metodo_pago = fila['metodo_pago'] #varchar
+        despacho = fila['despacho'] #json
+        catalogo_id = fila['catalogo_id'] #varchar
+        canal = fila['canal'] #varchar
 
-        if str(compania_sap) in lista_compania_sap:
+        while len(str(compania_sap)) < 7: # Agrega los 0 al inicio que se pierden cuando se obtiene la compania_sap del excel
+            compania_sap = '0' + compania_sap
+
+        datos = {
+                'vendedor_id':vendedor_id,
+                'compania_sap':compania_sap,
+                'nombre_compania':nombre_compania,
+                'negociacion':bool(negociacion),
+                'correo_compania':str(correo_compania),
+                'telefono_compania':str(telefono_compania),
+                'nit_compania':str(nit_compania),
+                'pais_compania':pais_compania,
+                'estado_compania':estado_compania,
+                'banco':banco,
+                'centro':centro,
+                'informacion_legal':informacion_legal,#json
+                'direccion_legal':direccion_legal,#json
+                'metodo_pago':metodo_pago,
+                'despacho':despacho,#json
+                'catalogo_id':str(catalogo_id),
+                'canal':canal
+                }
+
+
+        if compania_sap in lista_compania_sap:
             # Ejecutar la consulta SQL para actualizar la base de datos
-            consulta =  """ UPDATE  compania
-                            SET     vendedor_id = %s, nombre_compania = %s, correo_compania = %s, telefono_compania = %s, nit_compania = %s, pais_compania = %s
-                            WHERE   compania_sap = %s
-                        """
-            datos= (vendedor_id, str(nombre_compania), str(correo_compania), str(telefono_compania), str(nit_compania), pais_compania, str(compania_sap))
-            cursor1.execute(consulta, datos)
+            valores = [vendedor_id,nombre_compania]
+            consulta = crearQueryUpdateCompania(pd.isnull(fila['negociacion']),
+                                pd.isnull(fila['correo_compania']),
+                                pd.isnull(fila['telefono_compania']),
+                                pd.isnull(fila['nit_compania']),
+                                pd.isnull(fila['estado_compania']),
+                                pd.isnull(fila['banco']),
+                                pd.isnull(fila['centro']),
+                                pd.isnull(fila['informacion_legal']),
+                                pd.isnull(fila['direccion_legal']),
+                                pd.isnull(fila['metodo_pago']),
+                                pd.isnull(fila['despacho']),
+                                pd.isnull(fila['catalogo_id']),
+                                pd.isnull(fila['canal']),
+                                datos,
+                                valores)
+
+            consulta = consulta.replace('\'','',consulta.count('\''))
+            valores.append(compania_sap)
+            cursor1.execute(consulta, valores)
             conexion1.commit()
 
         else:
-            consulta =  """ INSERT INTO compania(vendedor_id, compania_sap, nombre_compania, correo_compania, telefono_compania, nit_compania, pais_compania)
-                            values (%s,%s,%s,%s,%s,%s,%s)
-                        """
-            datos=(vendedor_id, compania_sap, nombre_compania, correo_compania, telefono_compania, nit_compania, pais_compania)
-            cursor1.execute(consulta, datos)
+            valores = [vendedor_id, compania_sap, nombre_compania]
+
+            consulta = crearQueryInsertCompania(pd.isnull(fila['negociacion']),
+                                pd.isnull(fila['correo_compania']),
+                                pd.isnull(fila['telefono_compania']),
+                                pd.isnull(fila['nit_compania']),
+                                pd.isnull(fila['estado_compania']),
+                                pd.isnull(fila['banco']),
+                                pd.isnull(fila['centro']),
+                                pd.isnull(fila['informacion_legal']),
+                                pd.isnull(fila['direccion_legal']),
+                                pd.isnull(fila['metodo_pago']),
+                                pd.isnull(fila['despacho']),
+                                pd.isnull(fila['catalogo_id']),
+                                pd.isnull(fila['canal']),
+                                datos,
+                                valores)
+            consulta = consulta.replace('\'','',consulta.count('\''))
+
+            cursor1.execute(consulta, valores)
             conexion1.commit()
 
     # Cerrar el cursor
@@ -147,4 +208,141 @@ def upload():
     # Retornar una respuesta exitosa
     return "Base de datos actualizada correctamente", 200
 
+def crearQueryUpdateCompania(negociacion,correo_compania,telefono_compania,nit_compania,estado_compania,
+                        banco,centro,informacion_legal,direccion_legal,metodo_pago,despacho,catalogo_id, canal, datos, valores):
+    consulta = "UPDATE compania SET"
+    columnas = ['vendedor_id = %s', 'nombre_compania = %s']
 
+    if not negociacion:
+        columnas.append('negociacion = %s')
+        valores.append(datos['negociacion'])
+
+    if not correo_compania:
+        columnas.append('correo_compania = %s')
+        valores.append(datos['correo_compania'])
+
+    if not telefono_compania:
+        columnas.append('telefono_compania = %s')
+        valores.append(datos['telefono_compania'])
+
+    if not nit_compania:
+        columnas.append('nit_compania = %s')
+        valores.append(datos['nit_compania'])
+
+    columnas.append('pais_compania = %s')
+    valores.append(datos['pais_compania'])
+
+    if not estado_compania:
+        columnas.append('estado_compania = %s')
+        valores.append(datos['estado_compania'])
+
+    if not banco:
+        columnas.append('banco = %s')
+        valores.append(str(datos['banco'].replace("[", "{").replace("]", "}")))
+
+    if not centro:
+        columnas.append('centro = %s')
+        valores.append(str(datos['centro'].replace("[", "{").replace("]", "}")))
+
+    if not informacion_legal:
+        columnas.append('informacion_legal = %s')
+        valores.append(datos['informacion_legal'])
+
+    if not direccion_legal:
+        columnas.append('direccion_legal = %s')
+        valores.append(datos['direccion_legal'])
+
+    if not metodo_pago:
+        columnas.append('metodo_pago = %s')
+        valores.append(str(datos['metodo_pago'].replace("[", "{").replace("]", "}")))
+
+    if not despacho:
+        columnas.append('despacho = %s')
+        valores.append(datos['despacho'])
+
+    if not catalogo_id:
+        columnas.append('catalogo_id = %s')
+        valores.append(datos['catalogo_id'])
+
+    if not canal:
+        columnas.append('canal = %s')
+        valores.append(str(datos['canal'].replace("[", "{").replace("]", "}")))
+
+    consulta = f"{consulta}{columnas}"
+    consulta = consulta.replace("[", " ").replace("]", "")
+
+    return consulta + ' WHERE compania_sap = %s'
+
+
+
+def crearQueryInsertCompania(negociacion,correo_compania,telefono_compania,nit_compania,estado_compania,
+                        banco,centro,informacion_legal,direccion_legal,metodo_pago,despacho,catalogo_id, canal, datos, valores):
+    consulta = "INSERT INTO compania"
+    columnas = ['vendedor_id', 'compania_sap', 'nombre_compania']
+
+    if not negociacion:
+        columnas.append('negociacion')
+        valores.append(datos['negociacion'])
+
+    if not correo_compania:
+        columnas.append('correo_compania')
+        valores.append(datos['correo_compania'])
+
+    if not telefono_compania:
+        columnas.append('telefono_compania')
+        valores.append(datos['telefono_compania'])
+
+    if not nit_compania:
+        columnas.append('nit_compania')
+        valores.append(datos['nit_compania'])
+
+    columnas.append('pais_compania')
+    valores.append(datos['pais_compania'])
+
+    if not estado_compania:
+        columnas.append('estado_compania')
+        valores.append(datos['estado_compania'])
+
+    if not banco:
+        columnas.append('banco')
+        valores.append(str(datos['banco'].replace("[", "{").replace("]", "}")))
+
+    if not centro:
+        columnas.append('centro')
+        valores.append(str(datos['centro'].replace("[", "{").replace("]", "}")))
+
+    if not informacion_legal:
+        columnas.append('informacion_legal')
+        valores.append(datos['informacion_legal'])
+
+    if not direccion_legal:
+        columnas.append('direccion_legal')
+        valores.append(datos['direccion_legal'])
+
+    if not metodo_pago:
+        columnas.append('metodo_pago')
+        valores.append(str(datos['metodo_pago'].replace("[", "{").replace("]", "}")))
+
+    if not despacho:
+        columnas.append('despacho')
+        valores.append(datos['despacho'])
+
+    if not catalogo_id:
+        columnas.append('catalogo_id')
+        valores.append(datos['catalogo_id'])
+
+    if not canal:
+        columnas.append('canal')
+        valores.append(str(datos['canal'].replace("[", "{").replace("]", "}")))
+
+    consulta = f"{consulta}{columnas}"
+    consulta = consulta.replace("[", "(").replace("]", ")")
+
+    value = ['%s']
+    while len(value) < len(columnas):
+        value.append('%s')
+
+    values = f" values {value}"
+    values = values.replace("[", "(").replace("]", ")")
+
+    return consulta + values
