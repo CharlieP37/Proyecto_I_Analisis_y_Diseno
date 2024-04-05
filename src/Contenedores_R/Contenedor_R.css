@@ -1,0 +1,39 @@
+.AreaContenedor_R {
+    height: 600px;
+    width: 1200px;
+    background: #101322;
+    border-radius: 30px;
+    gap: 16px;
+    padding-top: 25px;
+    margin-left: 50px;
+    margin-right: 50px;
+}
+
+.Contenido_R {
+    margin-left: 20px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+}
+
+.img_Selected {
+    margin-right: 10px;
+}
+
+.AreaContenedor_Content {
+    height: 500px;
+    width: 1100px;
+    background: #ffffff;
+    border-radius: 30px;
+    gap: 16px;
+    margin-left: 50px;
+    margin-top: 15px;
+}
+
+.variable_Area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; 
+    margin-top: 100px;
+}

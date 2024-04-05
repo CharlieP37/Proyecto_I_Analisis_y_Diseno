@@ -1,0 +1,16 @@
+.Content_CR {
+    display: flex; 
+    flex-direction: column;
+    justify-content: center; 
+    text-align: center; 
+    height: 75%;
+}
+
+.Title_CR {
+    font-size: 40px; 
+    font-weight: bold; 
+}
+
+.Test_CR {
+    font-size: 25px; 
+}

@@ -1,0 +1,11 @@
+.Button_Main {
+    border-radius: 20px;
+    color: #fff;
+    background-color: #DB2929;
+    width: 200px;
+    align-self: center;
+}
+
+.Button_Main:hover {
+    background-color: #db2929c9;
+}

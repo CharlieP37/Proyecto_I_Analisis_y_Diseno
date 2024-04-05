@@ -1,0 +1,10 @@
+.navbar {
+    background: #101322;
+    place-content: center;
+    height: 50px;
+    margin-bottom: 20px;
+}
+
+.img_logo {
+    margin-left: 2.5%;
+}

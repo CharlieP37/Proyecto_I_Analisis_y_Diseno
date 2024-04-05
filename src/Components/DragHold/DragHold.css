@@ -1,0 +1,52 @@
+.drag-drop-container {
+    border: 2px dashed #4caf50;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 8px;
+    background-color: transparent;
+    transition: background-color 0.3s ease;
+    width: 600px;
+    height: 275px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.drag-drop-container.drag-over {
+    background-color: #e0e0e0;
+}
+
+.drag-drop-container p {
+    margin: 0;
+    font-size: 24px;
+    color: #fff;
+}
+
+.file-preview {
+    margin-top: 10px;
+}
+
+.file-preview p {
+    font-weight: bold;
+}
+
+.submit-button {
+    margin-top: 40px;
+    padding: 8px 16px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+    background-color: #45a049;
+}
+
+.Img_Import_Data {
+    margin-bottom: 20px;
+}

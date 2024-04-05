@@ -1,0 +1,18 @@
+.input-container {
+    display: flex;
+    align-items: center;
+}
+
+.left-text {
+    margin-right: 10px;
+    color: #fff;
+}
+
+.input-field {
+    border: 1px solid;
+    padding: 5px;
+    width: 200px;
+    border-radius: 20px;
+    border-color: #1CCC1D;
+}
+  

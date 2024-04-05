@@ -1,0 +1,11 @@
+.Content_CR {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center; 
+  }
+  
+  .Img_Message {
+    max-width: 100%;
+    height: auto;
+  }
