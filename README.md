@@ -9,16 +9,21 @@ El proyecto se encuentra en la carpeta ***"modulo"***
 Levantar un entorno virtual
 ```
 python -m venv .venv
+```
 o
+```
 py -m venv .venv
 ```
 
 Acitvar el entorno virtual
-```
+
 Para PowerShell
+```
 .venv/Scripts/Activate.ps1
+```
 
 Para CMD
+```
 .venv/Scripts/Activate.bat
 ```
 
@@ -30,7 +35,7 @@ pip install -r requirements.txt
 
 Para levantar un servidor en python
 ```
-flask --app <nombre de la carpeta> run
+flask --app <nombre de la archivo> run
 ```
 En este caso seria
 ```
