@@ -1,23 +1,23 @@
 #Query básico para la descarga de información de compañias
-companiesquery = """select	V.correo_vendedor, COMP.compania_sap, COMP.nombre_compania, COMP.negociacion, COMP.correo_compania, COMP.telefono_compania, COMP.nit_compania, PS.abreviatura, COMP.estado_compania, COMP.banco, COMP.centro, COMP.informacion_legal, COMP.direccion_legal, COMP.metodo_pago, COMP.despacho, COMP.catalogo_id, COMP.canal
+companies_query = """select	V.correo_vendedor, COMP.compania_sap, COMP.nombre_compania, COMP.negociacion, COMP.correo_compania, COMP.telefono_compania, COMP.nit_compania, PS.abreviatura, COMP.estado_compania, COMP.banco, COMP.centro, COMP.informacion_legal, COMP.direccion_legal, COMP.metodo_pago, COMP.despacho, COMP.catalogo_id, COMP.canal
 from	compania COMP
 		inner join pais PS on (PS.pais_id = COMP.pais_compania)
 		inner join vendedor V on (V.vendedor_id = COMP.vendedor_id)"""
 
 #Query básico para la descarga de información de materia prima
-rawmaterialquery = """select	MP.materia_prima_id, MP.nombre, MP.codigo, MP.es_urea, MP.nutrientes, MP.categoria, MP.sector, B.bodega_sap, MP.estado, MP.stock_minimo, PS.abreviatura
+rawmaterial_query = """select	MP.materia_prima_id, MP.nombre, MP.codigo, MP.es_urea, MP.nutrientes, MP.categoria, MP.sector, B.bodega_sap, MP.estado, MP.stock_minimo, PS.abreviatura
 from	materia_prima MP
 		inner join bodega B on (B.bodega_id = MP.bodega_id)
 		inner join pais PS on (PS.pais_id = B.pais_bodega)"""
 
 #Query básico para la descarga de información de clientes
-clientsquery ="""select	U.nombre_usuario, U.apellido_usuario, U.correo_usuario, U.telefono_usuario, U.estado_usuario, COMP.compania_sap, U.password_usuario, U.usuario_ref, PS.abreviatura
+clients_query ="""select	U.nombre_usuario, U.apellido_usuario, U.correo_usuario, U.telefono_usuario, U.estado_usuario, COMP.compania_sap, U.password_usuario, U.usuario_ref, PS.abreviatura
 from	usuario U
 		inner join compania COMP on (COMP.compania_id = U.compania_id)
 		inner join pais PS on (PS.pais_id = COMP.pais_compania)"""
 
 #Query básico para la descarga de información de destinatarios
-addresseequery = """select	COMP.compania_sap, DES.destinatario_sap, DES.ciudad, DES.departamento, DES.zip, DES.telefono_destinatario,
+addressee_query = """select	COMP.compania_sap, DES.destinatario_sap, DES.ciudad, DES.departamento, DES.zip, DES.telefono_destinatario,
 		DES.detalle, DES.punto, DES.estado_id, DES.contacto, DES.despacho, DES.facturacion, DES.nombre_destinatario,
 		DES.apellido_destinatario, DES.envio, DES.nombre_referencia
 from	destinatario DES
@@ -26,7 +26,7 @@ from	destinatario DES
 		inner join vendedor V on (V.vendedor_id = COMP.vendedor_id)"""
 
 #Función que construye el query para la descarga con o sin filtro de la información de materia prima
-def companiesdownload(pais, correo_vendedor, catalogo, estado):
+def companies_download(pais, correo_vendedor, catalogo, estado):
 	conditionalstr = ""
 
 	if pais is not None or "":
@@ -53,12 +53,12 @@ def companiesdownload(pais, correo_vendedor, catalogo, estado):
 		else:
 			conditionalstr = conditionalstr + " and (COMP.estado_compania = {})".format(estado)
 
-	return companiesquery + '\n'+ conditionalstr
+	return companies_query + '\n'+ conditionalstr
 
 #Función que construye el query para la descarga con o sin filtro de la información de materia prima
-def rawmaterialdownload(pais, bodega_sap, categoria, urea, estado, sector):
+def rawmaterial_download(pais, bodega_sap, categoria, urea, estado, sector):
 	conditionalstr = ""
- 
+
 	if pais is not None or "":
 		if conditionalstr == "":
 			conditionalstr = "where	(PS.abreviatura = '{}')".format(pais)
@@ -89,11 +89,11 @@ def rawmaterialdownload(pais, bodega_sap, categoria, urea, estado, sector):
 			conditionalstr = "where	(MP.sector = '{}')".format(sector)
 		else:
 			conditionalstr = conditionalstr + " and (MP.sector = '{}')".format(sector)
-	
-	return rawmaterialquery + '\n'+ conditionalstr
+
+	return rawmaterial_query + '\n'+ conditionalstr
 
 #Función que construye el query para la descarga con o sin filtro de la información de clientes
-def clientsdownload(compania_sap, pais, estado):
+def clients_download(compania_sap, pais, estado):
 	conditionalstr = ""
 
 	if compania_sap is not None or "":
@@ -113,13 +113,13 @@ def clientsdownload(compania_sap, pais, estado):
 			conditionalstr = "where	(U.estado_usuario = {})".format(estado)
 		else:
 			conditionalstr = conditionalstr + " and (U.estado_usuario = {})".format(estado)
-	
-	return clientsquery + '\n' + conditionalstr
+
+	return clients_query + '\n' + conditionalstr
 
 #Función que construye el query para la descarga con o sin filtro de la información de destinatarios
-def addresseedownload(compania_sap, pais, correo_vendedor, estado):
+def addressee_download(compania_sap, pais, correo_vendedor, estado):
 	conditionalstr = ""
- 
+
 	if compania_sap is not None or "":
 		if conditionalstr == "":
 			conditionalstr = "where	(COMP.compania_sap = '{}')".format(compania_sap)
@@ -144,7 +144,7 @@ def addresseedownload(compania_sap, pais, correo_vendedor, estado):
 		else:
 			conditionalstr = conditionalstr + " and (DES.estado_id = {})".format(estado)
 
-	return addresseequery + '\n' + conditionalstr
+	return addressee_query + '\n' + conditionalstr
 
 def identifier_retreiver(column, table, condition1, condition2):
 	querystring = []
