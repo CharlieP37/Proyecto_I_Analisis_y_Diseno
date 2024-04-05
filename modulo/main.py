@@ -15,28 +15,6 @@ from database import connect_to_database
 #Importación de funciones para los querys de descarga
 from querys import *
 
-def verificar_filas(datos_excel):
-    # Verifica que el DataFrame no tenga valores nulos
-    if datos_excel.isnull().values.any():
-        return False
-
-    # Verifica los tipos de datos de cada columna, al email le coloque str porque los correos estan inventados y no llevan una secuencia
-    tipos_esperados = {'id': int, 'first_name': str, 'last_name': str, 'email': str, 'company': int, 'product': str}
-    for columna, tipo_esperado in tipos_esperados.items():
-        if datos_excel[columna].dtype != tipo_esperado:
-            return False
-
-    # Verifica que el id sea un número entero valor unico
-    if datos_excel['id'].dtype != int:
-        return False
-
-    # Verifica que el id no tenga valores negativos
-    if (datos_excel['id'] < 0).any():
-        return False
-
-    return True
-
-
 def BD_listar_columna(query):
     cursor1 = conexion1.cursor()
     cursor1.execute(query)
@@ -175,23 +153,6 @@ def upload():
                         return f"La columna '{columna}' no puede contener valores negativos.", 400
                 except ValueError:
                     return f"La columna '{columna}' debe contener valores numéricos enteros.", 400
-
-        #elif columna == 'telefono_compania':
-        #    for valor in df[columna]:
-        #        if not ((isinstance(valor, str) or isinstance(valor, int)) and len(str(valor)) <= 45):
-        #            return f"La columna '{columna}' es incorrecta", 400
-
-        #elif columna == 'nit_compania':
-        #    for valor in df[columna]:
-        #        if not ((isinstance(valor, str) or isinstance(valor, int)) and len(str(valor)) <= 45):
-        #            return f"La columna '{columna}' es incorrecta", 400
-
-
-    # Validar el formato del correo electrónico
-    #patron_email = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-    #for index, fila in df.iterrows():
-    #    if not re.match(patron_email, str(fila['correo_compania'])):
-    #        return f"El correo electrónico '{fila['correo_compania']}' no tiene un formato válido.", 400
 
     df = pd.read_excel(archivo_excel)
     cursor1 = conexion1.cursor()
