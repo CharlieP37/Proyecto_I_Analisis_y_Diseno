@@ -3,6 +3,9 @@
 
 .vscode
 
+### Other ###
+downloadslogs/
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
