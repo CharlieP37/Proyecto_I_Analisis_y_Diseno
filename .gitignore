@@ -5,6 +5,7 @@
 
 ### Other ###
 /modulo/downloadslog/*
+/modulo/uploadslog/*
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

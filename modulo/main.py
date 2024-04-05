@@ -257,6 +257,8 @@ def upload():
     # Cerrar el cursor
     cursor1.close()
 
+    archivo_excel.save(os.path.dirname(__file__) + '\\uploadslog\\' + 'carga {}.xlsx'.format(datetime.now().strftime("%d-%m-%Y %H_%M_%S")))
+
     # Retornar una respuesta exitosa
     return "Base de datos actualizada correctamente", 200
 
