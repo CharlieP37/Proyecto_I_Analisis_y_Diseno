@@ -145,3 +145,17 @@ def addresseedownload(compania_sap, pais, correo_vendedor, estado):
 			conditionalstr = conditionalstr + " and (DES.estado_id = {})".format(estado)
 
 	return addresseequery + '\n' + conditionalstr
+
+def identifier_retreiver(column, table, condition1, condition2):
+	querystring = []
+	querystring.append("select")
+	querystring.append(column)
+	querystring.append("from")
+	querystring.append(table)
+	querystring.append("where (")
+	querystring.append(condition1)
+	querystring.append("=")
+	querystring.append(condition2)
+	querystring.append(")")
+	newquery = ' '.join(querystring)
+	return (newquery)
