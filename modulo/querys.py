@@ -1,3 +1,9 @@
+#Query básico para la descarga de información de compañias
+companiesquery = """select	V.correo_vendedor, COMP.compania_sap, COMP.nombre_compania, COMP.negociacion, COMP.correo_compania, COMP.telefono_compania, COMP.nit_compania, PS.abreviatura, COMP.estado_compania, COMP.banco, COMP.centro, COMP.informacion_legal, COMP.direccion_legal, COMP.metodo_pago, COMP.despacho, COMP.catalogo_id, COMP.canal
+from	compania COMP
+		inner join pais PS on (PS.pais_id = COMP.pais_compania)
+		inner join vendedor V on (V.vendedor_id = COMP.vendedor_id)"""
+
 #Query básico para la descarga de información de materia prima
 rawmaterialquery = """select	MP.materia_prima_id, MP.nombre, MP.codigo, MP.es_urea, MP.nutrientes, MP.categoria, MP.sector, B.bodega_sap, MP.estado, MP.stock_minimo, PS.abreviatura
 from	materia_prima MP
@@ -18,6 +24,36 @@ from	destinatario DES
 		inner join compania COMP on (COMP.compania_id = DES.compania_id)
 		inner join pais PS on (PS.pais_id = COMP.pais_compania)
 		inner join vendedor V on (V.vendedor_id = COMP.vendedor_id)"""
+
+#Función que construye el query para la descarga con o sin filtro de la información de materia prima
+def companiesdownload(pais, correo_vendedor, catalogo, estado):
+	conditionalstr = ""
+
+	if pais is not None or "":
+		if conditionalstr == "":
+			conditionalstr = "where	(PS.abreviatura = '{}')".format(pais)
+		else:
+			conditionalstr = conditionalstr + " and (PS.abreviatura = '{}')".format(pais)
+
+	if correo_vendedor is not None or "":
+		if conditionalstr == "":
+			conditionalstr = "where	(V.correo_vendedor = '{}')".format(correo_vendedor)
+		else:
+			conditionalstr = conditionalstr + " and (V.correo_vendedor = '{}')".format(correo_vendedor)
+
+	if catalogo is not None or "":
+		if conditionalstr == "":
+			conditionalstr = "where	(COMP.catalogo_id = '{}')".format(catalogo)
+		else:
+			conditionalstr = conditionalstr + " and (COMP.catalogo_id = '{}')".format(catalogo)
+
+	if estado is not None or "":
+		if conditionalstr == "":
+			conditionalstr = "where	(COMP.estado_compania = {})".format(estado)
+		else:
+			conditionalstr = conditionalstr + " and (COMP.estado_compania = {})".format(estado)
+
+	return companiesquery + '\n'+ conditionalstr
 
 #Función que construye el query para la descarga con o sin filtro de la información de materia prima
 def rawmaterialdownload(pais, bodega_sap, categoria, urea, estado, sector):

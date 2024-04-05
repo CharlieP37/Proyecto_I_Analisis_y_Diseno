@@ -59,6 +59,28 @@ def download():
     cursor1.close()
     return send_file(ruta_excel, as_attachment=True, download_name='resultados_query.xlsx')
 
+@app.route('/download/companias/',  methods=["GET"])
+#Función definida para la descarga del archivo excel de la materia prima con o sin filtros
+def dowloadcompanias():
+
+    pais = request.args.get('pais')
+    vendedor = request.args.get('vendedor')
+    catalogo = request.args.get('catalogo')
+    estado = request.args.get('estado')
+    query = companiesdownload(pais, vendedor, catalogo, estado)
+
+    cursor1 = conexion1.cursor()
+    cursor1.execute(query)
+    filas = cursor1.fetchall()
+
+    # Convertir los resultados en un DataFrame de pandas y guardarlo en un arhivo de excel
+    df = pd.DataFrame(filas, columns=[desc[0] for desc in cursor1.description])
+    ruta_excel = 'resultados_companias.xlsx'
+    df.to_excel(ruta_excel, index=False)
+
+    cursor1.close()
+    return send_file(ruta_excel, as_attachment=True, download_name='resultados_companias.xlsx')
+
 @app.route('/download/materia/',  methods=["GET"])
 #Función definida para la descarga del archivo excel de la materia prima con o sin filtros
 def dowloadmateria():
@@ -85,7 +107,7 @@ def dowloadmateria():
 
 @app.route('/download/clientes/',  methods=["GET"])
 #Función definida para la descarga del archivo excel de los clientes con o sin filtros
-def dowloadclients():
+def dowloadclientes():
     compania_sap = request.args.get('compania_sap')
     pais = request.args.get('pais')
     estado = request.args.get('estado')
