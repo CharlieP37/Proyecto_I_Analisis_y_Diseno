@@ -60,6 +60,7 @@ def dowloadcompanias():
 
     # Convertir los resultados en un DataFrame de pandas y guardarlo en un arhivo de excel
     df = pd.DataFrame(filas, columns=[desc[0] for desc in cursor1.description])
+    dirvalidation(os.path.dirname(__file__) + '\\downloadslog\\')
     ruta_excel = os.path.dirname(__file__) + '\\downloadslog\\' + 'resultados_companias {}.xlsx'.format(datetime.now().strftime("%d-%m-%Y %H_%M_%S"))
     df.to_excel(ruta_excel, index=False)
 
@@ -83,6 +84,7 @@ def dowloadmateria():
 
     # Convertir los resultados en un DataFrame de pandas y guardarlo en un arhivo de excel
     df = pd.DataFrame(filas, columns=[desc[0] for desc in cursor1.description])
+    dirvalidation(os.path.dirname(__file__) + '\\downloadslog\\')
     ruta_excel = os.path.dirname(__file__) + '\\downloadslog\\' + 'resultados_materia {}.xlsx'.format(datetime.now().strftime("%d-%m-%Y %H_%M_%S"))
     df.to_excel(ruta_excel, index=False)
 
@@ -104,6 +106,7 @@ def dowloadclientes():
 
     # Convertir los resultados en un DataFrame de pandas y guardarlo en un arhivo de excel
     df = pd.DataFrame(filas, columns=[desc[0] for desc in cursor1.description])
+    dirvalidation(os.path.dirname(__file__) + '\\downloadslog\\')
     ruta_excel = os.path.dirname(__file__) + '\\downloadslog\\' + 'resultados_clientes {}.xlsx'.format(datetime.now().strftime("%d-%m-%Y %H_%M_%S"))
     df.to_excel(ruta_excel, index=False)
 
@@ -125,6 +128,7 @@ def dowloaddestinatario():
 
     # Convertir los resultados en un DataFrame de pandas y guardarlo en un arhivo de excel
     df = pd.DataFrame(filas, columns=[desc[0] for desc in cursor1.description])
+    dirvalidation(os.path.dirname(__file__) + '\\downloadslog\\')
     ruta_excel = os.path.dirname(__file__) + '\\downloadslog\\' + 'resultados_destinatario {}.xlsx'.format(datetime.now().strftime("%d-%m-%Y %H_%M_%S"))
     df.to_excel(ruta_excel, index=False)
 
@@ -256,6 +260,8 @@ def upload():
 
     # Cerrar el cursor
     cursor1.close()
+
+    dirvalidation(os.path.dirname(__file__) + '\\uploadslog\\')
 
     df.to_excel(os.path.dirname(__file__) + '\\uploadslog\\' + 'carga {}.xlsx'.format(datetime.now().strftime("%d-%m-%Y %H_%M_%S")), index=False)
 
@@ -400,3 +406,7 @@ def crearQueryInsertCompania(negociacion,correo_compania,telefono_compania,nit_c
     values = values.replace("[", "(").replace("]", ")")
 
     return consulta + values
+
+def dirvalidation(path: str):
+    if not os.path.exists(path):
+        os.mkdir(path)
