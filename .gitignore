@@ -8,6 +8,16 @@
 # testing
 /coverage
 
+### Other ###
+/modulo/downloadslog/*
+/modulo/uploadslog/*
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
 # production
 /build
 
