@@ -1,0 +1,7 @@
+Para la funcionalidad de carga de datos a través de la función "upload" no funciona actualmente con el archivo que se genera con la descarga por la función "download/" en sus distintas tablas, debido a que cuando se descarga el archivo este va a reemplazar los valores de las llaves primarias por las secundarias como compania_id por compania_sap, y esto no está contemplado al momento de cargar el excel a la función "upload" por el momento.
+
+Para la función de carga de datos "upload" se puede hacer con archivos excel que vengan con todas las columnas de la base de datos, como el archivo de prueba contenido llamado "resultados_query.xlsx"
+
+Asimismo hacen falta las funciones "upload" para las tablas "materia_prima", "clientes" y "destinatario" así como la recuperación de errores, un excel con los registros fallidos y la refactorización de varias partes del código.
+
+Con esto contemplado, se considera la funcionalidad del API en 85-90% completado para lo mostrado el día viernes 5 de abril de 2024.
