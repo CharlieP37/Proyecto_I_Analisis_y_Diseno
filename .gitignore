@@ -4,8 +4,8 @@
 .vscode
 
 ### Other ###
-/modulo/downloadslog/*
-/modulo/uploadslog/*
+/modulo/downloads_log/*
+/modulo/uploads_log/*
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
