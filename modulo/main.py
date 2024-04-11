@@ -11,6 +11,7 @@ from queries_upload import *
 app = Flask(__name__)
 connection = connect_to_database()
 
+@app.route('/download/companias/',  methods=["GET"])
 #Función definida para la descarga del archivo excel de la materia prima con o sin filtros
 def dowload_companias():
 
@@ -37,13 +38,16 @@ def dowload_companias():
     rows = cursor.fetchall()
 
     # Convertir los resultados en un DataFrame de pandas y guardarlo en un arhivo de excel
-    excel = save_results_to_excel(rows,'resultados_companias',cursor)
+    df = pd.DataFrame(rows, columns=[desc[0] for desc in cursor.description])
+    dir_validation(os.path.dirname(__file__) + '\\downloads_log\\')
+    ruta_excel = os.path.dirname(__file__) + '\\downloads_log\\' + 'resultados_companias {}.xlsx'.format(datetime.now().strftime("%d-%m-%Y %H_%M_%S"))
+    df.to_excel(ruta_excel, index=False)
 
     cursor.close()
-    return excel
+    return send_file(ruta_excel, as_attachment=True, download_name='resultados_companias.xlsx')
 
-#Función definida para la descarga del archivo excel de la materia prima con o sin filtros
 @app.route('/download/materia/',  methods=["GET"])
+#Función definida para la descarga del archivo excel de la materia prima con o sin filtros
 def download_materia():
     pais = request.values.get('pais')
     bodega_sap = request.values.get('bodega_sap')
@@ -82,12 +86,16 @@ def download_materia():
     rows = cursor.fetchall()
 
     # Convertir los resultados en un DataFrame de pandas y guardarlo en un arhivo de excel
-    excel = save_results_to_excel(rows,'resultados_materia',cursor)
+    df = pd.DataFrame(rows, columns=[desc[0] for desc in cursor.description])
+    dir_validation(os.path.dirname(__file__) + '\\downloads_log\\')
+    ruta_excel = os.path.dirname(__file__) + '\\downloads_log\\' + 'resultados_materia {}.xlsx'.format(datetime.now().strftime("%d-%m-%Y %H_%M_%S"))
+    df.to_excel(ruta_excel, index=False)
 
     cursor.close()
-    return excel
+    return send_file(ruta_excel, as_attachment=True, download_name='resultados_materia.xlsx')
 
 
+@app.route('/download/clientes/',  methods=["GET"])
 #Función definida para la descarga del archivo excel de los clientes con o sin filtros
 def dowload_clientes():
     compania_sap = request.values.get('compania_sap')
@@ -112,11 +120,15 @@ def dowload_clientes():
     rows = cursor.fetchall()
 
     # Convertir los resultados en un DataFrame de pandas y guardarlo en un arhivo de excel
-    excel = save_results_to_excel(rows,'resultados_clientes',cursor)
+    df = pd.DataFrame(rows, columns=[desc[0] for desc in cursor.description])
+    dir_validation(os.path.dirname(__file__) + '\\downloads_log\\')
+    ruta_excel = os.path.dirname(__file__) + '\\downloads_log\\' + 'resultados_clientes {}.xlsx'.format(datetime.now().strftime("%d-%m-%Y %H_%M_%S"))
+    df.to_excel(ruta_excel, index=False)
 
     cursor.close()
-    return excel
+    return send_file(ruta_excel, as_attachment=True, download_name='resultados_clientes.xlsx')
 
+@app.route('/download/destinatario/',  methods=["GET"])
 #Función definida para la descarga del archivo excel de los destinatarios con o sin filtros
 def dowload_destinatario():
     compania_sap = request.values.get('compania_sap')
@@ -142,10 +154,13 @@ def dowload_destinatario():
     rows = cursor.fetchall()
 
     # Convertir los resultados en un DataFrame de pandas y guardarlo en un arhivo de excel
-    excel = save_results_to_excel(rows,'resultados_destinatario',cursor)
+    df = pd.DataFrame(rows, columns=[desc[0] for desc in cursor.description])
+    dir_validation(os.path.dirname(__file__) + '\\downloads_log\\')
+    ruta_excel = os.path.dirname(__file__) + '\\downloads_log\\' + 'resultados_destinatario {}.xlsx'.format(datetime.now().strftime("%d-%m-%Y %H_%M_%S"))
+    df.to_excel(ruta_excel, index=False)
 
     cursor.close()
-    return excel
+    return send_file(ruta_excel, as_attachment=True, download_name='resultados_destinatario.xlsx')
 
 @app.route('/upload/companias/', methods=["POST"])
 def upload_companies():
