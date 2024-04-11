@@ -11,9 +11,9 @@ from queries_upload import *
 app = Flask(__name__)
 connection = connect_to_database()
 
-@app.route('/download/companias/',  methods=["GET"])
+@app.route('/download/companias/',  methods=["GET", "POST"])
 #Función definida para la descarga del archivo excel de la materia prima con o sin filtros
-def dowload_companias():
+def download_companias():
 
     pais = request.values.get('pais')
     vendedor = request.values.get('vendedor')
@@ -46,7 +46,7 @@ def dowload_companias():
     cursor.close()
     return send_file(ruta_excel, as_attachment=True, download_name='resultados_companias.xlsx')
 
-@app.route('/download/materia/',  methods=["GET"])
+@app.route('/download/materia/',  methods=["GET", "POST"])
 #Función definida para la descarga del archivo excel de la materia prima con o sin filtros
 def download_materia():
     pais = request.values.get('pais')
@@ -95,9 +95,9 @@ def download_materia():
     return send_file(ruta_excel, as_attachment=True, download_name='resultados_materia.xlsx')
 
 
-@app.route('/download/clientes/',  methods=["GET"])
+@app.route('/download/clientes/',  methods=["GET", "POST"])
 #Función definida para la descarga del archivo excel de los clientes con o sin filtros
-def dowload_clientes():
+def download_clientes():
     compania_sap = request.values.get('compania_sap')
     pais = request.values.get('pais')
     estado = request.values.get('estado')
@@ -128,9 +128,9 @@ def dowload_clientes():
     cursor.close()
     return send_file(ruta_excel, as_attachment=True, download_name='resultados_clientes.xlsx')
 
-@app.route('/download/destinatario/',  methods=["GET"])
+@app.route('/download/destinatario/',  methods=["GET", "POST"])
 #Función definida para la descarga del archivo excel de los destinatarios con o sin filtros
-def dowload_destinatario():
+def download_destinatario():
     compania_sap = request.values.get('compania_sap')
     pais = request.values.get('pais')
     vendedor = request.values.get('vendedor')
