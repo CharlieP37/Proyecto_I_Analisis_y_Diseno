@@ -51,7 +51,7 @@ def download_materia():
     urea = request.values.get('urea')
     estado = request.values.get('estado')
     sector = request.values.get('sector')
-    query = rawmaterial_download(pais, bodega_sap, categoria, urea, estado, sector)
+    query = raw_material_download(pais, bodega_sap, categoria, urea, estado, sector)
 
     if pais is not None:
         if len(pais) > 5:
