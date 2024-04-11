@@ -45,11 +45,23 @@ connection = connect_to_database()
 #Función definida para la descarga del archivo excel de la materia prima con o sin filtros
 def dowload_companias():
 
-    pais = request.args.get('pais')
-    vendedor = request.args.get('vendedor')
-    catalogo = request.args.get('catalogo')
-    estado = request.args.get('estado')
+    pais = request.values.get('pais')
+    vendedor = request.values.get('vendedor')
+    catalogo = request.values.get('catalogo')
+    estado = request.values.get('estado')
     query = companies_download(pais, vendedor, catalogo, estado)
+
+    if pais is not None:
+        if len(pais) > 5:
+            return "El campo PAÍS es inválido", 422
+    
+    if estado is not None:
+        try:
+            int(estado)
+            if int(estado) != 0 and int(estado) != 1:
+                return "El estado solo puede ser activo o inactivo", 422
+        except:
+            return "El estado no es un valor numérico", 422
 
     cursor = connection.cursor()
     cursor.execute(query)
@@ -67,13 +79,37 @@ def dowload_companias():
 @app.route('/download/materia/',  methods=["GET"])
 #Función definida para la descarga del archivo excel de la materia prima con o sin filtros
 def download_materia():
-    pais = request.args.get('pais')
-    bodega_sap = request.args.get('bodega_sap')
-    categoria = request.args.get('categoria')
-    urea = request.args.get('urea')
-    estado = request.args.get('estado')
-    sector = request.args.get('sector')
+    pais = request.values.get('pais')
+    bodega_sap = request.values.get('bodega_sap')
+    categoria = request.values.get('categoria')
+    urea = request.values.get('urea')
+    estado = request.values.get('estado')
+    sector = request.values.get('sector')
     query = rawmaterial_download(pais, bodega_sap, categoria, urea, estado, sector)
+
+    if pais is not None:
+        if len(pais) > 5:
+            return "El campo PAÍS es inválido", 422
+    
+    if urea is not None:
+        try:
+            int(urea)
+            if int(urea) != 0 and int(urea) != 1:
+                return "Urea solo puede ser verdadero o falso", 422
+        except:
+            return "Urea no es un valor numérico", 422
+
+    if estado is not None:
+        try:
+            int(estado)
+            if int(estado) != 0 and int(estado) != 1:
+                return "El estado solo puede ser activo o inactivo", 422
+        except:
+            return "El estado no es un valor numérico", 422
+
+    if sector is not None:
+        if len(sector) > 4:
+            return "El campo SECTOR es inválido", 422
 
     cursor = connection.cursor()
     cursor.execute(query)
@@ -92,10 +128,22 @@ def download_materia():
 @app.route('/download/clientes/',  methods=["GET"])
 #Función definida para la descarga del archivo excel de los clientes con o sin filtros
 def dowload_clientes():
-    compania_sap = request.args.get('compania_sap')
-    pais = request.args.get('pais')
-    estado = request.args.get('estado')
+    compania_sap = request.values.get('compania_sap')
+    pais = request.values.get('pais')
+    estado = request.values.get('estado')
     query = clients_download(compania_sap, pais, estado)
+
+    if pais is not None:
+        if len(pais) > 5:
+            return "El campo PAÍS es inválido", 422
+
+    if estado is not None:
+        try:
+            int(estado)
+            if int(estado) != 0 and int(estado) != 1:
+                return "El estado solo puede ser activo o inactivo", 422
+        except:
+            return "El estado no es un valor numérico", 422
 
     cursor = connection.cursor()
     cursor.execute(query)
@@ -113,11 +161,23 @@ def dowload_clientes():
 @app.route('/download/destinatario/',  methods=["GET"])
 #Función definida para la descarga del archivo excel de los destinatarios con o sin filtros
 def dowload_destinatario():
-    compania_sap = request.args.get('compania_sap')
-    pais = request.args.get('pais')
-    vendedor = request.args.get('vendedor')
-    estado = request.args.get('estado')
+    compania_sap = request.values.get('compania_sap')
+    pais = request.values.get('pais')
+    vendedor = request.values.get('vendedor')
+    estado = request.values.get('estado')
     query = addressee_download(compania_sap, pais, vendedor, estado)
+
+    if pais is not None:
+        if len(pais) > 5:
+            return "El campo PAÍS es inválido", 422
+
+    if estado is not None:
+        try:
+            int(estado)
+            if int(estado) != 0 and int(estado) != 1:
+                return "El estado solo puede ser activo o inactivo", 422
+        except:
+            return "El estado no es un valor numérico", 422
 
     cursor = connection.cursor()
     cursor.execute(query)
