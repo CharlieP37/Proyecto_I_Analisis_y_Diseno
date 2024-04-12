@@ -13,7 +13,7 @@ connection = connect_to_database()
 
 @app.route('/download/companias/',  methods=["GET", "POST"])
 #Función definida para la descarga del archivo excel de la materia prima con o sin filtros
-def download_companias():
+def download_companies():
 
     pais = request.values.get('pais')
     vendedor = request.values.get('vendedor')
@@ -24,7 +24,7 @@ def download_companias():
     if pais is not None:
         if len(pais) > 5:
             return "El campo PAÍS es inválido", 422
-    
+
     if estado is not None:
         try:
             int(estado)
@@ -48,7 +48,7 @@ def download_companias():
 
 @app.route('/download/materia/',  methods=["GET", "POST"])
 #Función definida para la descarga del archivo excel de la materia prima con o sin filtros
-def download_materia():
+def download_raw_material():
     pais = request.values.get('pais')
     bodega_sap = request.values.get('bodega_sap')
     categoria = request.values.get('categoria')
@@ -60,7 +60,7 @@ def download_materia():
     if pais is not None:
         if len(pais) > 5:
             return "El campo PAÍS es inválido", 422
-    
+
     if urea is not None:
         try:
             int(urea)
@@ -97,7 +97,7 @@ def download_materia():
 
 @app.route('/download/clientes/',  methods=["GET", "POST"])
 #Función definida para la descarga del archivo excel de los clientes con o sin filtros
-def download_clientes():
+def download_clients():
     compania_sap = request.values.get('compania_sap')
     pais = request.values.get('pais')
     estado = request.values.get('estado')
@@ -130,7 +130,7 @@ def download_clientes():
 
 @app.route('/download/destinatario/',  methods=["GET", "POST"])
 #Función definida para la descarga del archivo excel de los destinatarios con o sin filtros
-def download_destinatario():
+def download_addressee():
     compania_sap = request.values.get('compania_sap')
     pais = request.values.get('pais')
     vendedor = request.values.get('vendedor')
@@ -169,6 +169,7 @@ def upload_companies():
     df = read_excel_file(excel_file)
     cursor = connection.cursor()
 
+    # Obtener los datos necesarios para las validaciones
     compania_sap_list = bd_list_column("select compania_sap from compania")
     correo_vendedor_and_vendedor_id_dict = bd_list_two_columns("select correo_vendedor, vendedor_id from vendedor")
     abreviatura_and_pais_id_dict = bd_list_two_columns("select abreviatura, pais_id from pais")
@@ -177,7 +178,7 @@ def upload_companies():
     if not isinstance(df, pd.DataFrame):
         return "DataFrame no válido", 400
 
-    msg_response = "Base de datos actualizada correctamente", 200
+    # Crear una lista para almacenar los datos que no se pudieron insertar en la base de datos
     data_error = []
 
     for index, row in df.iterrows():
@@ -208,38 +209,36 @@ def upload_companies():
             if pd.isnull(correo_vendedor):
                 raise Exception("No colocó al vendedor", 422)
 
-            # Verificar si el correo del vendedor ya existe en el diccionario si no lo inserta en la tabla vendedor
-            if correo_vendedor not in correo_vendedor_and_vendedor_id_dict:
-                cursor.execute("INSERT INTO vendedor (correo_vendedor) VALUES (%s)", (correo_vendedor,))
-                connection.commit()
-                # Actualizar el diccionario con el nuevo vendedor
-                correo_vendedor_and_vendedor_id_dict = bd_list_two_columns("select correo_vendedor, vendedor_id from vendedor")
-            data['vendedor_id'] = correo_vendedor_and_vendedor_id_dict[correo_vendedor]
-
             nombre_compania = data['nombre_compania']
             if pd.isnull(nombre_compania):
                 raise Exception("No colocó el nombre de la compania", 422)
+
+            abreviatura = data['pais_compania']
+            if pd.isnull(abreviatura):
+                raise Exception("No colocó la abreviatura del país", 422)
 
             compania_sap = data['compania_sap']
             if pd.isnull(compania_sap):
                 raise Exception("No colocó la compania sap", 422)
             data['compania_sap'] = str(int(compania_sap))
 
+            # Verificar si el correo del vendedor ya existe en el diccionario si no lo inserta en la tabla vendedor
+            if correo_vendedor not in correo_vendedor_and_vendedor_id_dict:
+                cursor.execute("INSERT INTO vendedor (correo_vendedor) VALUES (%s)", (correo_vendedor,))
+                connection.commit()
+                # Actualizar el diccionario con el nuevo vendedor
+                correo_vendedor_and_vendedor_id_dict = bd_list_two_columns("select correo_vendedor, vendedor_id from vendedor")
+            # Reemplazar el correo del vendedor por el vendedor_id
+            data['vendedor_id'] = correo_vendedor_and_vendedor_id_dict[correo_vendedor]
+
             telefono_compania = data['telefono_compania']
             if not pd.isnull(telefono_compania):
                 telefono_compania = str(int(row['telefono_compania'])) #telefono_compania, # El telefono lo guarda como un float para despues convertirlo en int y por último a string
 
-            abreviatura = data['pais_compania']
-            if pd.isnull(abreviatura):
-                raise Exception("No colocó la abreviatura del país", 422)
-
             abreviatura = abreviatura.upper()
             if abreviatura not in abreviatura_and_pais_id_dict:
-                cursor.execute("INSERT INTO pais (abreviatura) VALUES (%s)", (abreviatura,))
-                connection.commit()
-                # Actualizar el diccionario con el nuevo pais
-                abreviatura_and_pais_id_dict = bd_list_two_columns("select abreviatura, pais_id from pais")
-
+                raise Exception("El país no existe", 422)
+            # Reemplazar la abreviatura por el pais_id
             data['pais_compania'] = abreviatura_and_pais_id_dict[abreviatura]
 
             nit_compania = data['nit_compania']
@@ -247,51 +246,66 @@ def upload_companies():
                 nit_compania = str(int(row['nit_compania']))
 
             # Esto es temporal, debido a los datos de prueba se necesitaba esta correción
-            while len(str(object=data.get('compania_sap'))) < 7: # Agrega los 0 al inicio que se pierden cuando se obtiene la compania_sap del excel
+            while len(str(object=data.get('compania_sap'))) < 7: # Agrega los 0 al inicio que se pierden cuando se obtiene la compania_sap del excel. Ejemplo: 0000001
                 data['compania_sap'] = '0' + data['compania_sap']
 
+            # Crear una lista con los valores de los datos
             values = [data['vendedor_id'], data['compania_sap'], data['nombre_compania']]
 
+            # Verificar si la compania sap ya existe en la base de datos, si no la inserta en la tabla compania
             if data['compania_sap'] in compania_sap_list:
-                # Ejecutar la consulta SQL para actualizar la base de data
+                # Crea la consulta SQL para actualizar la base de data
                 query = create_query_update_company(data, values)
+                # Quita las comillas simples, para evitar errores en la consulta SQL
                 query = query.replace('\'','',query.count('\''))
+                # Se agrega al final ya que este valor es la condición con los que se van a actualizar. En la consutla se ve asi: WHERE compania_sap = data['compania_sap']
                 values.append(data['compania_sap'])
                 cursor.execute(query, values)
                 connection.commit()
             else:
-                # Ejecutar la consulta SQL para insertar la base de data
+                # Crea la consulta SQL para insertar la base de data
                 query = create_query_insert_company(data, values)
+                # Quita las comillas simples, para evitar errores en la consulta SQL
                 query = query.replace('\'','',query.count('\''))
                 cursor.execute(query, values)
                 connection.commit()
 
         except Exception as e:
+            # Si hay un error, se agrega el diccionario de datos a la lista de errores
             data_error.append(data)
             connection.rollback()
 
     # Cerrar el cursor
     cursor.close()
 
+    # Crear un directorio para guardar los archivos de excel
     dir_validation(os.path.dirname(__file__) + '\\uploads_log\\')
 
+    # Guardar el archivo de excel con los resultados
     upload_save_results_to_excel('resultados_compania', df)
+
+    # Si hay errores, se crea un archivo de excel con los datos que no se pudieron insertar
     if len(data_error) >= 1:
         df_error = pd.DataFrame(data_error)
+
+        # Cambiar el nombre de las columnas para que coincidan con el archivo de excel, ya que se cambió el nombre de las columnas en el diccionario de datos, pero no en el archivo de excel
         df_error.rename(columns={'vendedor_id': 'correo_vendedor','pais_compania': 'abreviatura'}, inplace=True)
+
+        # Guardar el archivo de excel con los datos que no se pudieron insertar
         excel = upload_save_results_to_excel('registros_fallidos-resultados_compania', df_error)
         return excel
 
     # Retornar una respuesta exitosa
-    return msg_response
+    return "Base de datos actualizada correctamente", 200
 
 @app.route('/upload/materia/', methods=["POST"])
-def upload_raw_materia():
+def upload_raw_material():
     excel_file = request.files['archivo']
 
     df = read_excel_file(excel_file)
     cursor = connection.cursor()
 
+    # Obtener los datos necesarios para las validaciones
     codigo_list = bd_list_column("select codigo from materia_prima")
     bodega_sap_and_bodega_id_dict = bd_list_two_columns("select bodega_sap, bodega_id from bodega")
     abreviatura_and_pais_id_dict = bd_list_two_columns("select abreviatura, pais_id from pais")
@@ -300,7 +314,7 @@ def upload_raw_materia():
     if not isinstance(df, pd.DataFrame):
         return "DataFrame no válido", 400
 
-    msg_response = "Base de datos actualizada correctamente", 200
+    # Crear una lista para almacenar los datos que no se pudieron insertar en la base de datos
     data_error = []
 
     for index, row in df.iterrows():
@@ -334,34 +348,38 @@ def upload_raw_materia():
 
             abreviatura = abreviatura.upper()
             if abreviatura not in abreviatura_and_pais_id_dict:
-                cursor.execute("INSERT INTO pais (abreviatura) VALUES (%s)", (abreviatura,))
-                connection.commit()
-                # Actualizar el diccionario con el nuevo pais
-                abreviatura_and_pais_id_dict = bd_list_two_columns("select abreviatura, pais_id from pais")
+                raise Exception("El país no existe", 422)
 
             bodega_sap = data['bodega_id']
             if pd.isnull(bodega_sap):
                 raise Exception("No colocó la bodega sap", 422)
 
+            # Verificar si la bodega sap ya existe en el diccionario si no la inserta en la tabla bodega, junto con el pais_id
             if bodega_sap not in bodega_sap_and_bodega_id_dict:
                 cursor.execute("INSERT INTO bodega (pais_bodega, bodega_sap) VALUES (%s, %s)", (abreviatura_and_pais_id_dict[abreviatura], bodega_sap,))
                 connection.commit()
                 # Actualizar el diccionario con la nueva bodega
                 bodega_sap_and_bodega_id_dict = bd_list_two_columns("select bodega_sap, bodega_id from bodega")
+            # Reemplazar la bodega_sap por la bodega_id
             data['bodega_id'] = bodega_sap_and_bodega_id_dict[bodega_sap]
 
+            # Crear una lista con los valores de los datos
             values = [data['nombre'], data['codigo']]
 
+            # Verificar si el codigo de la materia prima ya existe en la base de datos, si no la inserta en la tabla materia_prima
             if data['codigo'] in codigo_list:
-                # Ejecutar la consulta SQL para actualizar la base de data
+                # Crea la consulta SQL para actualizar la base de data
                 query = create_query_update_raw_material(data, values)
+                # Quita las comillas simples, para evitar errores en la consulta SQL
                 query = query.replace('\'','',query.count('\''))
-                values.append(str(data['codigo']))  # Convert the codigo to string
+                # Se agrega al final ya que este valor es la condición con los que se van a actualizar. En la consutla se ve asi: WHERE codigo = data['codigo']
+                values.append(str(data['codigo']))
                 cursor.execute(query, values)
                 connection.commit()
             else:
-                # Ejecutar la consulta SQL para insertar la base de data
+                # Crea la consulta SQL para insertar la base de data
                 query = create_query_insert_raw_material(data, values)
+                # Quita las comillas simples, para evitar errores en la consulta SQL
                 query = query.replace('\'','',query.count('\''))
                 cursor.execute(query, values)
                 connection.commit()
@@ -373,15 +391,21 @@ def upload_raw_materia():
     # Cerrar el cursor
     cursor.close()
 
+    # Crear un directorio para guardar los archivos de excel
     dir_validation(os.path.dirname(__file__) + '\\uploads_log\\')
+
+    # Guardar el archivo de excel con los resultados
     upload_save_results_to_excel('resultados_materia_prima', df)
+
+    # Si hay errores, se crea un archivo de excel con los datos que no se pudieron insertar
     if len(data_error) >= 1:
         df_error = pd.DataFrame(data_error)
+        # Cambiar el nombre de las columnas para que coincidan con el archivo de excel, ya que se cambió el nombre de las columnas en el diccionario de datos, pero no en el archivo de excel
         df_error.rename(columns={'bodega_id': 'bodega_sap'}, inplace=True)
         excel = upload_save_results_to_excel('registros_fallidos-resultados_materia_prima', df_error)
         return excel
 
-    return msg_response
+    return "Base de datos actualizada correctamente", 200
 
 @app.route('/upload/clientes/', methods=["POST"])
 def upload_clients():
@@ -390,6 +414,7 @@ def upload_clients():
     df = read_excel_file(excel_file)
     cursor = connection.cursor()
 
+    # Obtener los datos necesarios para las validaciones
     correo_usuario_list = bd_list_column("select correo_usuario from usuario")
     abreviatura_and_pais_id_dict = bd_list_two_columns("select abreviatura, pais_id from pais")
     compania_sap_and_compania_id_dict = bd_list_two_columns("select compania_sap, compania_id from compania")
@@ -398,6 +423,7 @@ def upload_clients():
     if not isinstance(df, pd.DataFrame):
         return "DataFrame no válido", 400
 
+    # Crear una lista para almacenar los datos que no se pudieron insertar en la base de datos
     data_error = []
 
     for index, row in df.iterrows():
@@ -422,20 +448,26 @@ def upload_clients():
                 raise Exception("La compañía_sap no existe", 422)
             data['compania_id'] = compania_sap_and_compania_id_dict[compania_sap]
 
-            if data['abreviatura'] not in abreviatura_and_pais_id_dict:
+            if data['abreviatura'].upper() not in abreviatura_and_pais_id_dict:
                 raise Exception("El país no existe", 422)
 
+            # Crear una lista con los valores de los datos
             values = [data['nombre_usuario']]
+
+            # Verificar si el correo del usuario ya existe en la base de datos, si no lo inserta en la tabla usuario
             if data['correo_usuario'] in correo_usuario_list:
-                # Ejecutar la consulta SQL para actualizar la base de data
+                # Crea la consulta SQL para actualizar la base de data
                 query = create_query_update_client(data, values)
+                # Quita las comillas simples, para evitar errores en la consulta SQL
                 query = query.replace('\'','',query.count('\''))
+                # Se agrega al final ya que este valor es la condición con los que se van a actualizar. En la consutla se ve asi: WHERE correo_usuario = data['correo_usuario']
                 values.append(data['correo_usuario'])
                 cursor.execute(query, values)
                 connection.commit()
             else:
-                # Ejecutar la consulta SQL para insertar la base de data
+                # Crea la consulta SQL para insertar la base de data
                 query = create_query_insert_client(data, values)
+                # Quita las comillas simples, para evitar errores en la consulta SQL
                 query = query.replace('\'','',query.count('\''))
                 cursor.execute(query, values)
                 connection.commit()
@@ -447,12 +479,18 @@ def upload_clients():
     # Cerrar el cursor
     cursor.close()
 
+    # Crear un directorio para guardar los archivos de excel
     dir_validation(os.path.dirname(__file__) + '\\uploads_log\\')
 
+    # Guardar el archivo de excel con los resultados
     upload_save_results_to_excel('resultados_clientes', df)
+
+    # Si hay errores, se crea un archivo de excel con los datos que no se pudieron insertar
     if len(data_error) >= 1:
         df_error = pd.DataFrame(data_error)
+        # Cambiar el nombre de las columnas para que coincidan con el archivo de excel, ya que se cambió el nombre de las columnas en el diccionario de datos, pero no en el archivo de excel
         df_error.rename(columns={'compania_id': 'compania_sap'}, inplace=True)
+        # Guardar el archivo de excel con los datos que no se pudieron insertar
         excel = upload_save_results_to_excel('registros_fallidos-resultados_clientes', df_error)
         return excel
 
@@ -500,21 +538,27 @@ def upload_addressee():
 
             compania_sap = str(data['compania_id'])
             if compania_sap not in compania_sap_and_compania_id_dict:
-                print('Entro aqui')
                 raise Exception("La compañía_sap no existe", 422)
+            # Reemplazar la compania_sap por la compania_id
             data['compania_id'] = compania_sap_and_compania_id_dict[compania_sap]
 
+            # Crear una lista con los valores de los datos
             values = [data['compania_id'], data['destinatario_sap'], data['ciudad']]
+
+            # Verificar si el destinatario sap ya existe en la base de datos, si no lo inserta en la tabla destinatario
             if data['destinatario_sap'] in destinatario_sap_list:
-                # Ejecutar la consulta SQL para actualizar la base de data
+                # Crea la consulta SQL para actualizar la base de data
                 query = create_query_update_addressee(data, values)
+                # Quita las comillas simples, para evitar errores en la consulta SQL
                 query = query.replace('\'','',query.count('\''))
+                # Se agrega al final ya que este valor es la condición con los que se van a actualizar. En la consutla se ve asi: WHERE destinatario_sap = data['destinatario_sap']
                 values.append(data['destinatario_sap'])
                 cursor.execute(query, values)
                 connection.commit()
             else:
-                # Ejecutar la consulta SQL para insertar la base de data
+                # Crea la consulta SQL para insertar la base de data
                 query = create_query_insert_addressee(data, values)
+                # Quita las comillas simples, para evitar errores en la consulta SQL
                 query = query.replace('\'','',query.count('\''))
                 cursor.execute(query, values)
                 connection.commit()
@@ -526,12 +570,17 @@ def upload_addressee():
     # Cerrar el cursor
     cursor.close()
 
+    # Crear un directorio para guardar los archivos de excel
     dir_validation(os.path.dirname(__file__) + '\\uploads_log\\')
 
+    # Guardar el archivo de excel con los resultados
     upload_save_results_to_excel('resultados_destinatario', df)
+    # Si hay errores, se crea un archivo de excel con los datos que no se pudieron insertar
     if len(data_error) >= 1:
         df_error = pd.DataFrame(data_error)
+        # Cambiar el nombre de las columnas para que coincidan con el archivo de excel, ya que se cambió el nombre de las columnas en el diccionario de datos, pero no en el archivo de excel
         df_error.rename(columns={'compania_id': 'compania_sap'}, inplace=True)
+        # Guardar el archivo de excel con los datos que no se pudieron insertar
         excel = upload_save_results_to_excel('registros_fallidos-resultados_destinatario', df_error)
         return excel
 
