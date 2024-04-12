@@ -1,5 +1,5 @@
 .Button_Main {
-    border-radius: 20px;
+    border-radius: 30px;
     color: #fff;
     background-color: #DB2929;
     width: 200px;
@@ -8,4 +8,8 @@
 
 .Button_Main:hover {
     background-color: #db2929c9;
+}
+
+.Container {
+    padding: 20px;
 }

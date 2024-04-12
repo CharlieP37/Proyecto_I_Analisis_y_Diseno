@@ -12,20 +12,20 @@ export function MenuVar () {
   
   
     const options_Materia_Prima = [
-        { text: 'Importar', link: '/', imageUrl: img_Descarga },
-        { text: 'Exportar', link: '/', imageUrl: img_Export },
+        { text: 'Importar', link: '/materia-prima/importar', imageUrl: img_Descarga },
+        { text: 'Exportar', link: '/materia-prima/exportar', imageUrl: img_Export },
     ];
     const options_Clientes = [
-        { text: 'Importar', link: '/', imageUrl: img_Descarga },
-        { text: 'Exportar', link: '/', imageUrl: img_Export },
+        { text: 'Importar', link: '/clientes/importar', imageUrl: img_Descarga },
+        { text: 'Exportar', link: '/clientes/exportar', imageUrl: img_Export },
     ];
     const options_Compania = [
-        { text: 'Importar', link: '/', imageUrl: img_Descarga },
-        { text: 'Exportar', link: '/', imageUrl: img_Export },
+        { text: 'Importar', link: '/compania/importar', imageUrl: img_Descarga },
+        { text: 'Exportar', link: '/compania/exportar', imageUrl: img_Export },
     ];
     const options_Destinatario = [
-        { text: 'Importar', link: '/', imageUrl: img_Descarga },
-        { text: 'Exportar', link: '/', imageUrl: img_Export },
+        { text: 'Importar', link: '/destinatario/importar', imageUrl: img_Descarga },
+        { text: 'Exportar', link: '/destinatario/exportar', imageUrl: img_Export },
     ];
 
   return(
