@@ -1,3 +1,16 @@
+# 1. Proyecto I Análisis y Diseño
+
+Módulo de Exportación e Importación de Datos del Panel de Control - DISAGRO
+
+## Creado por:
+*   __Carlos Antonio Pop Arroyo__ - _carlospoparroyo@outlook.com_
+*   __Diego Andrés Gil Morales__ - _diegoandygil@gmail.com_
+*   __Diego Martín Calel Ixcotoy__ - _diegocalel25@gmail.com_
+
+
+### Universidad Rafael Landívar 2024
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
