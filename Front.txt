@@ -1,0 +1,16 @@
+El proyecto consiste en un desarrollo de Front end para el modulo de importación y exportación, este esta dividido en varas carpetas en donde la raíz tiene el directorio de src, en donde se encuentra el programa y luego fuera del directorio los archivos de configuración del proyecto.
+
+Estructura del proyecto
+src:
+- assets
+- Componentes
+- Contenedores_R
+- Pages
+
+En el directorio assets está el directorio img, en donde se guardan las imágenes que se usan en el proyecto.
+
+En el directorio Componentes están los componentes generales, componentes como los botones, los input, los drop down, entre otros componentes que no están asociados a algo en específico.
+
+En el directorio de Contenedores_R se encuentran todos los componentes que se utilizan para las funciones que deben de tener el lado derecho como la importación y exportación de materia prima. 
+
+El directorio Pages tiene todas las distintas páginas que se renderizan en el proyecto.
